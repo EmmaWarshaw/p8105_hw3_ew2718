@@ -1,0 +1,36 @@
+---
+title: "p8105_hw3_ew2718"
+author: "Emma Warshaw"
+date: "2022-10-11"
+output: github_document
+---
+```{r}
+library(tidyverse)
+```
+
+**Problem 1**
+This problem uses the Instacart data. DO NOT include this dataset in your local data directory; instead, load the data from the p8105.datasets using:
+```{r}
+library(p8105.datasets)
+data("instacart")
+```
+
+#The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
+
+This is a very large dataset: there are 1,384,617 observations for a total of 15 variables.  The variables include: order id, product id, add to cart order, user id, evaluation set, the order number, order_dow, order hour of the day, days since prior order, product name, aisle id, department id, aisle, and department.  Variables are a mix of numberic and character variables.  
+
+#How many aisles are there, and which aisles are the most items ordered from?
+There are 134 aisles total.  Aisle 3 has 17,449 observations. 
+```{r}
+instacart %>% 
+  group_by(aisle_id) %>%
+  summarize(n_obs = n())
+```
+
+#Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+
+Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+
