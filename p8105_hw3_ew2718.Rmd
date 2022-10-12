@@ -28,9 +28,45 @@ instacart %>%
 ```
 
 #Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+```{r}
+ggplot(instacart, aes(x = aisle_id)) + 
+  geom_histogram() %>%
+  ifelse(instacart >= 10000 )
+```
 
 Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+**Problem 2**
+This problem uses five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). The data can be downloaded here. In this spreadsheet, variables activity.* are the activity counts for each minute of a 24-hour day starting at midnight.
+
+Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+
+After cleaning, the resulting data set has 1444 total columns and 35 rows.  The 1444 columns correspond to day type (weekday or weekend), week, day ID, and day.  The remaining 1440 columns correspond to an activity score for every minute of the day.  As a precaution, I ran `drop.na` on the data set to make sure that there were no values missing.  Since the device is continuously attached, there wasn't any missing data, but I wanted to be sure that there was an outlier day when the device malfunctioned.    
+```{r}
+accelerometer = read_csv("./data/accel_data.csv") %>%
+  janitor::clean_names() %>%
+  mutate(day_type = case_when(
+    day == 'Monday' ~ 'weekday',
+    day == 'Tuesday' ~ 'weekday',
+    day == 'Wednesday' ~ 'weekday',
+    day == 'Thursday' ~ 'weekday',
+    day == 'Friday' ~ 'weekday',
+    day == 'Saturday' ~ 'weekend',
+    day == 'Sunday' ~ 'weekend'
+  )) %>% 
+  select(day_type, everything()) %>%
+  mutate(day_type = as.character(day_type)) %>%
+  drop_na()
+```
+
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+```{r}
+accelerometer %>% 
+  group_by(day_id) %>%
+  mutate(day_total = sum(c(activity_1, activity_2, activity_3), na.rm = FALSE))
+```
+
 
 
