@@ -6,6 +6,7 @@ output: github_document
 ---
 ```{r}
 library(tidyverse)
+library(knitr)
 ```
 
 **Problem 1**
@@ -22,16 +23,16 @@ This is a very large dataset: there are 1,384,617 observations for a total of 15
 #How many aisles are there, and which aisles are the most items ordered from?
 There are 134 aisles total.  Aisle 3 has 17,449 observations. 
 ```{r}
-instacart %>% 
-  group_by(aisle_id) %>%
-  summarize(n_obs = n())
+#instacart %>% 
+  #group_by(aisle_id) %>%
+  #summarize(n_obs = n())
 ```
 
 #Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 ```{r}
-ggplot(instacart, aes(x = aisle_id)) + 
-  geom_histogram() %>%
-  ifelse(instacart >= 10000 )
+#ggplot(instacart, aes(x = aisle_id)) + 
+  #geom_histogram() %>%
+  #ifelse(instacart >= 10000 )
 ```
 
 Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
@@ -41,9 +42,14 @@ Make a table showing the mean hour of the day at which Pink Lady Apples and Coff
 **Problem 2**
 This problem uses five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). The data can be downloaded here. In this spreadsheet, variables activity.* are the activity counts for each minute of a 24-hour day starting at midnight.
 
-Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+#Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
 
-After cleaning, the resulting data set has 1444 total columns and 35 rows.  The 1444 columns correspond to day type (weekday or weekend), week, day ID, and day.  The remaining 1440 columns correspond to an activity score for every minute of the day.  As a precaution, I ran `drop.na` on the data set to make sure that there were no values missing.  Since the device is continuously attached, there wasn't any missing data, but I wanted to be sure that there was an outlier day when the device malfunctioned.    
+After cleaning, the resulting data set has 1444 total columns and 35 rows.  The 1444 columns correspond to day type (weekday or weekend), week, day ID, and day.  The remaining 1440 columns correspond to an activity score for every minute of the day.  As a precaution, I ran `drop.na` on the data set to make sure that there were no values missing.  Since the device is continuously attached, there wasn't any missing data, but I wanted to be sure that there was an outlier day when the device malfunctioned.   
+
+#Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+#Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
 ```{r}
 accelerometer = read_csv("./data/accel_data.csv") %>%
   janitor::clean_names() %>%
@@ -58,15 +64,18 @@ accelerometer = read_csv("./data/accel_data.csv") %>%
   )) %>% 
   select(day_type, everything()) %>%
   mutate(day_type = as.character(day_type)) %>%
-  drop_na()
+  drop_na() %>%
+  pivot_longer(activity_1:activity_1440,
+               names_to = "minute",
+               values_to = "activity") %>%
+  group_by(day_id, day_type, week, day) %>%
+  summarise(activity_total = sum(activity)) %>%
+  kable() %>% 
+  print(kable()) %>%
+  
 ```
 
-Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
-```{r}
-accelerometer %>% 
-  group_by(day_id) %>%
-  mutate(day_total = sum(c(activity_1, activity_2, activity_3), na.rm = FALSE))
-```
+
 
 
 
