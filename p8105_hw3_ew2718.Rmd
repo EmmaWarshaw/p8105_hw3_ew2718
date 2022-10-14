@@ -44,15 +44,14 @@ This problem uses five weeks of accelerometer data collected on a 63 year-old ma
 
 #Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
 
-After cleaning, the resulting data set has 1444 total columns and 35 rows.  The 1444 columns correspond to day type (weekday or weekend), week, day ID, and day.  The remaining 1440 columns correspond to an activity score for every minute of the day.  As a precaution, I ran `drop.na` on the data set to make sure that there were no values missing.  Since the device is continuously attached, there wasn't any missing data, but I wanted to be sure that there was an outlier day when the device malfunctioned.   
-
-#Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
-
-#Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+The resulting data frame is 6 columns wide and 50,400 rows long.  There are 6 variables: day_type, week, day_id, day, minute and activity.  For each day_id, there are 1440 rows, corresponding to each minute of the day and the activity score associated with it.  This data is technically tidy, but it's long and not super user friendly.  
 
 ```{r}
 accelerometer = read_csv("./data/accel_data.csv") %>%
   janitor::clean_names() %>%
+  pivot_longer(activity_1:activity_1440,
+               names_to = "minute",
+               values_to = "activity") %>%
   mutate(day_type = case_when(
     day == 'Monday' ~ 'weekday',
     day == 'Tuesday' ~ 'weekday',
@@ -62,18 +61,54 @@ accelerometer = read_csv("./data/accel_data.csv") %>%
     day == 'Saturday' ~ 'weekend',
     day == 'Sunday' ~ 'weekend'
   )) %>% 
-  select(day_type, everything()) %>%
-  mutate(day_type = as.character(day_type)) %>%
-  drop_na() %>%
-  pivot_longer(activity_1:activity_1440,
-               names_to = "minute",
-               values_to = "activity") %>%
-  group_by(day_id, day_type, week, day) %>%
-  summarise(activity_total = sum(activity)) %>%
-  kable() %>% 
-  print(kable()) %>%
-  
+  select(day_type, everything())
 ```
+
+#Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+The last two Saturdays of the time period (ID=24 & 31) have extremely low activity scores. In fact, the last two weekends have much lower activity scores than the previous two weekends.  
+
+```{r}
+accelerometer %>%
+  group_by(day_id) %>%
+  summarise(activity_total = sum(activity)) %>%
+  kable()
+```
+
+#Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
+Let's start with the obvious: this is a messy graph.  Aside from that, the 14th day has an abnormally high activity score, especially compared to the other Wednesdays in the graph.  The first two weekends of the data set have relatively high activity scores.  The last two weekends, however, drop down to some of the lowest activity scores for the overall time period.  The last two Saturdays are incredibly low, making me wonder if the device was malfunctioning or if the participant removed it for a large protion of the day.    
+
+```{r}
+accelerometer %>%
+  ggplot(aes(x = day_id, y = activity)) + geom_point(aes(color = day))
+```
+
+**Problem 1**
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+```
+
+#The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
+
+There is a problem with missing data.  November of 2007 seems to be missing data for all variables for the 1-16 of the month.  All rows for 2007 are missing temperature minimums and maximums.  Many of the days also look to be missing temperature minimum and maximums.  This is at first glance.  With over 2 million rows worth of information, it's hard to get a sense of the scope of missing data.    
+
+#Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+
+```{r}
+my_sample = ny_noaa %>%
+  sample_n(2000) %>%
+  janitor::clean_names() %>%
+  separate(col = date, into = c('year', 'month', 'day'), sep = '-') %>%
+  mutate(prcp = prcp*0.01) %>%
+  mutate(snow = snow*0.1) %>%
+  as.numeric('tmax')
+```
+
+#Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+#Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
 
 
